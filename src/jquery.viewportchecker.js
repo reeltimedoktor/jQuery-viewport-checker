@@ -31,13 +31,40 @@
 
         // Cache the given element and height of the browser
         var $elem = this,
+            namespace = "viewportChecker-"+new Date().getTime(),
             windowSize = {height: $(window).height(), width: $(window).width()},
             scrollElem = ((navigator.userAgent.toLowerCase().indexOf('webkit') != -1) ? 'body' : 'html');
+        /*
+         *  Remove events
+         */
+        this.destroy = function(){
+        	
+        	$(document).off([
+						"touchmove."+namespace,
+						"MSPointerMove."+namespace,
+						"pointermove."+namespace
+					].join(" "));
+				 	
+			$(window).off([
+	        	"load."+namespace,
+	        	"scroll."+namespace,
+	        	"touchmove."+namespace
+	        ].join(" "));
+					
+			$(window).off("resize."+namespace);
+        }; 
 
         /*
          * Main method that checks the elements and adds or removes the class(es)
          */
         this.checkElements = function(){
+            
+            //check if $elem is removed from body
+          	if($elem.closest("body").length == 0){
+          	    $elem.destroy();
+          	    return;
+          	}
+            
             var viewportStart, viewportEnd;
 
             // Set some vars to check with
@@ -113,11 +140,20 @@
         };
 
         // Run checkelements on load and scroll
-        $(document).bind("touchmove MSPointerMove pointermove", this.checkElements);
-        $(window).bind("load scroll touchmove", this.checkElements);
+        $(document).on([
+        	"touchmove."+namespace,
+        	"MSPointerMove."+namespace,
+        	"pointermove."+namespace
+        ].join(" "), this.checkElements);
+        
+        $(window).on([
+        	"load."+namespace,
+        	"scroll."+namespace,
+        	"touchmove."+namespace
+        ].join(" "), this.checkElements);
 
         // On resize change the height var
-        $(window).resize(function(e){
+        $(window).on("resize."+namespace, function(e){
             windowSize = {height: $(window).height(), width: $(window).width()};
             $elem.checkElements();
         });
